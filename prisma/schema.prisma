@@ -1,0 +1,452 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  SUPERADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+  BANNED
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  DELETED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SPAM
+  DELETED
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+  LOVE
+  HAHA
+  WOW
+  SAD
+  ANGRY
+}
+
+enum AiModelType {
+  TEXT
+  EMBEDDING
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  USER
+}
+
+enum AuditAction {
+  USER_CREATED
+  USER_UPDATED
+  USER_SUSPENDED
+  USER_BANNED
+  USER_REACTIVATED
+  USER_ROLE_CHANGED
+  POST_CREATED
+  POST_UPDATED
+  POST_PUBLISHED
+  POST_UNPUBLISHED
+  POST_DELETED
+  COMMENT_CREATED
+  COMMENT_APPROVED
+  COMMENT_REJECTED
+  COMMENT_DELETED
+  REPORT_REVIEWED
+  AI_FEATURE_USED
+  ADMIN_SETTINGS_CHANGED
+}
+
+enum AuditEntityType {
+  USER
+  POST
+  COMMENT
+  REPORT
+  AI_CONFIG
+  SYSTEM
+}
+
+enum AuthSessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+model User {
+  id              String     @id @default(cuid())
+  clerkId         String     @unique
+  email           String     @unique
+  username        String?    @unique
+  name            String?
+  imageUrl        String?
+  bio             String?    @db.Text
+  role            UserRole   @default(USER)
+  status          UserStatus @default(ACTIVE)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+  lastUserAgent   String?    @db.VarChar(512)
+  lastSeenAt      DateTime?
+  suspendedAt     DateTime?
+  suspendedReason String?    @db.Text
+  bannedAt        DateTime?
+  bannedReason    String?    @db.Text
+  internalNotes   String?    @db.Text // superadmin only
+
+  posts             Post[]
+  comments          Comment[]
+  reactions         Reaction[]
+  aiUsageLogs       AiUsageLog[]
+  reports           Report[]
+  reportsFiled      Report[]      @relation("ReportsFiled")
+  auditLogsActed    AuditLog[]    @relation("AuditActor")
+  auditLogsTargeted AuditLog[]    @relation("AuditTarget")
+  authSessions      AuthSession[]
+  postViews         PostView[]
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  posts       PostTag[]
+
+  @@map("tags")
+}
+
+model Post {
+  id                 String     @id @default(cuid())
+  title              String
+  slug               String     @unique
+  content            String     @db.Text
+  contentPlain       String?    @db.Text
+  contentHash        String?
+  summary            String?    @db.Text
+  coverImageUrl      String?
+  coverImagePublicId String?
+  status             PostStatus @default(DRAFT)
+  publishedAt        DateTime?
+  metaTitle          String?
+  metaDescription    String?    @db.VarChar(320)
+  authorId           String
+  categoryId         String?
+  viewCount          Int        @default(0)
+  isFeatured         Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  author      User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category    Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags        PostTag[]
+  comments    Comment[]
+  reactions   Reaction[]
+  embeddings  PostEmbedding[]
+  aiCaches    PostAiCache[]
+  aiUsageLogs AiUsageLog[]
+  postViews   PostView[]
+
+  @@index([authorId])
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([categoryId])
+  @@map("posts")
+}
+
+model PostTag {
+  postId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  content   String        @db.Text
+  status    CommentStatus @default(PENDING)
+  postId    String
+  userId    String
+  parentId  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]     @relation("CommentReplies")
+
+  @@index([postId, status])
+  @@map("comments")
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  type      ReactionType @default(LIKE)
+  postId    String
+  userId    String
+  createdAt DateTime     @default(now())
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@map("reactions")
+}
+
+model PostEmbedding {
+  id         String   @id @default(cuid())
+  postId     String
+  chunkIndex Int      @default(0)
+  chunkText  String   @db.Text
+  modelSlug  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, chunkIndex, modelSlug])
+  @@map("post_embeddings")
+}
+
+model AiProvider {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  displayName  String
+  apiKeyEnvVar String
+  isEnabled    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  models       AiModel[]
+
+  @@map("ai_providers")
+}
+
+model AiModel {
+  id            String            @id @default(cuid())
+  providerId    String
+  slug          String
+  displayName   String
+  modelType     AiModelType
+  dimensions    Int?
+  isEnabled     Boolean           @default(true)
+  isDefault     Boolean           @default(false)
+  config        Json              @default("{}")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  provider      AiProvider        @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  textFeatures  AiFeatureConfig[] @relation("TextModel")
+  embedFeatures AiFeatureConfig[] @relation("EmbeddingModel")
+
+  @@unique([providerId, slug])
+  @@map("ai_models")
+}
+
+model AiPromptTemplate {
+  id        String            @id @default(cuid())
+  key       String
+  version   Int               @default(1)
+  name      String
+  template  String            @db.Text
+  variables Json              @default("[]")
+  isActive  Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  features  AiFeatureConfig[]
+
+  @@unique([key, version])
+  @@index([key, isActive])
+  @@map("ai_prompt_templates")
+}
+
+model AiFeatureConfig {
+  id               String            @id @default(cuid())
+  featureKey       String            @unique
+  displayName      String
+  isEnabled        Boolean           @default(true)
+  textModelId      String?
+  embeddingModelId String?
+  promptTemplateId String?
+  config           Json              @default("{}")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  textModel        AiModel?          @relation("TextModel", fields: [textModelId], references: [id])
+  embeddingModel   AiModel?          @relation("EmbeddingModel", fields: [embeddingModelId], references: [id])
+  promptTemplate   AiPromptTemplate? @relation(fields: [promptTemplateId], references: [id])
+
+  @@map("ai_feature_configs")
+}
+
+model PostAiCache {
+  id         String    @id @default(cuid())
+  postId     String
+  featureKey String
+  inputHash  String
+  output     Json
+  modelSlug  String
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, featureKey, inputHash])
+  @@map("post_ai_cache")
+}
+
+model AiUsageLog {
+  id           String   @id @default(cuid())
+  featureKey   String
+  providerSlug String
+  modelSlug    String
+  userId       String?
+  postId       String?
+  inputTokens  Int?
+  outputTokens Int?
+  latencyMs    Int?
+  success      Boolean  @default(true)
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  post         Post?    @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([featureKey, createdAt])
+  @@map("ai_usage_logs")
+}
+
+model Report {
+  id         String           @id @default(cuid())
+  targetType ReportTargetType
+  targetId   String
+  reason     String           @db.Text
+  status     ReportStatus     @default(OPEN)
+  reporterId String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+  reporter   User?            @relation("ReportsFiled", fields: [reporterId], references: [id])
+  user       User?            @relation(fields: [userId], references: [id])
+  userId     String?
+
+  @@index([status, createdAt])
+  @@map("reports")
+}
+
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  isActive       Boolean   @default(true)
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@map("newsletter_subscribers")
+}
+
+model AuditLog {
+  id           String          @id @default(cuid())
+  action       AuditAction
+  entityType   AuditEntityType
+  entityId     String?
+  actorUserId  String?
+  targetUserId String?
+  metadata     Json            @default("{}")
+  ipAddress    String? // hashed or anonymized
+  userAgent    String?         @db.VarChar(512)
+  requestId    String?
+  createdAt    DateTime        @default(now())
+
+  actor      User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  targetUser User? @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([action, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId])
+  @@index([targetUserId, createdAt])
+  @@map("audit_logs")
+}
+
+model AuthSession {
+  id             String            @id @default(cuid())
+  userId         String
+  clerkSessionId String?           @unique
+  ipAddress      String? // hashed/truncated
+  userAgent      String?           @db.VarChar(512)
+  country        String? // optional GeoIP
+  city           String?
+  deviceLabel    String? // "Chrome on Windows"
+  status         AuthSessionStatus @default(ACTIVE)
+  loginAt        DateTime          @default(now())
+  lastSeenAt     DateTime          @default(now())
+  logoutAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, loginAt])
+  @@index([ipAddress, loginAt])
+  @@map("auth_sessions")
+}
+
+model PostView {
+  id           String   @id @default(cuid())
+  postId       String
+  viewerUserId String? // null = anonymous
+  ipHash       String? // hashed IP for dedup / abuse
+  referrer     String?
+  userAgent    String?  @db.VarChar(512)
+  viewedAt     DateTime @default(now())
+
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  viewer User? @relation(fields: [viewerUserId], references: [id], onDelete: SetNull)
+
+  @@index([postId, viewedAt])
+  @@index([viewerUserId, viewedAt])
+  @@map("post_views")
+}

@@ -19,19 +19,19 @@ export function DashboardShell({
   const navItems = useMemo(() => getDashboardNav(isSuperAdmin), [isSuperAdmin]);
 
   return (
-    <div className="min-h-full lg:grid lg:grid-cols-[16rem_1fr]">
+    <div className="h-dvh overflow-hidden lg:grid lg:grid-cols-[16rem_1fr]">
       <DashboardSidebar items={navItems} />
 
-      <div className="flex min-h-full flex-col">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden">
         <DashboardHeader onMenuClick={() => setMobileOpen(true)} />
-
         <DashboardMobileNav
           open={mobileOpen}
           onOpenChange={setMobileOpen}
           items={navItems}
         />
-
-        <main className="flex-1 px-4 py-8">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-8 scrollbar-themed">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -12,16 +12,19 @@ export default async function AdminLayout({
   if (!user || !isSuperAdmin(user)) redirect("/dashboard");
 
   return (
-    <div className="space-y-8">
-      <div className="lg:hidden">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 lg:hidden">
         <AdminSidebar />
       </div>
 
-      <div className="lg:grid lg:grid-cols-[14rem_1fr] lg:gap-8">
-        <aside className="hidden lg:block">
-          <AdminSidebar />
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[14rem_1fr] lg:gap-8">
+        <aside className="hidden min-h-0 lg:block">
+          <AdminSidebar className="sticky top-0" />
         </aside>
-        <div className="min-w-0">{children}</div>
+
+        <div className="min-h-0 min-w-0 overflow-y-auto scrollbar-themed">
+          {children}
+        </div>
       </div>
     </div>
   );

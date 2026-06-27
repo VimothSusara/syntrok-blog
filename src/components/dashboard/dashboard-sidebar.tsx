@@ -10,14 +10,14 @@ type DashboardSidebarProps = {
 
 export function DashboardSidebar({ items }: DashboardSidebarProps) {
   return (
-    <aside className="hidden border-r border-border bg-muted/20 lg:flex lg:w-64 lg:flex-col">
-      <div className="flex h-14 items-center border-b border-border px-4">
+    <aside className="hidden h-full min-h-0 border-r border-border bg-muted/20 lg:flex lg:w-64 lg:flex-col">
+      <div className="flex h-14 shrink-0 items-center border-b border-border px-4">
         <Link href="/dashboard" className="font-semibold text-foreground">
           {siteConfig.name}
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 scrollbar-themed">
         <DashboardNavLinks items={items} />
 
         <Separator />

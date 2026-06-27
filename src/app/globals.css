@@ -73,6 +73,43 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-themed {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  .scrollbar-themed::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+    height: var(--scrollbar-size);
+  }
+
+  .scrollbar-themed::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--radius-lg);
+  }
+
+  .scrollbar-themed::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--scrollbar-track);
+    background-clip: padding-box;
+  }
+
+  .scrollbar-themed::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  .scrollbar-themed::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-active);
+  }
+
+  .scrollbar-themed::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+}
+
 /* Tiptap placeholder */
 .tiptap p.is-editor-empty:first-child::before {
   color: var(--muted-foreground);

@@ -7,6 +7,8 @@ import type { PaginationMeta } from "@/lib/pagination";
 import { UsersAdminToolbar } from "@/components/dashboard/admin/users-admin-toolbar";
 import { UsersAdminTable } from "@/components/dashboard/admin/users-admin-table";
 import { Pagination } from "@/components/shared/pagination";
+import { PageHeader } from "@/components/shared/page-header";
+import { adminBreadcrumbs } from "@/lib/breadcrumbs";
 
 type UsersAdminPageContentProps = {
   rows: UserAdminRow[];
@@ -25,18 +27,16 @@ export function UsersAdminPageContent({
 }: UsersAdminPageContentProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Users</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage accounts, roles, and access. Suspended or banned users cannot
-          comment.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {total === 0
+      <PageHeader
+        breadcrumbs={adminBreadcrumbs.section("Users")}
+        title="Users"
+        description="Manage accounts, roles, and access. Suspended or banned users cannot comment."
+        meta={
+          total === 0
             ? "No users found."
-            : `${total} user${total === 1 ? "" : "s"}`}
-        </p>
-      </div>
+            : `${total} user${total === 1 ? "" : "s"}`
+        }
+      />
 
       <UsersAdminToolbar basePath="/dashboard/admin/users" filters={filters} />
 

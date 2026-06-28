@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { legalLastUpdated } from "@/config/legal";
+import type { BreadcrumbItem } from "@/lib/breadcrumbs";
+import { PageHeader } from "@/components/shared/page-header";
 
 type LegalSection = {
   title: string;
@@ -11,6 +13,7 @@ type LegalPageShellProps = {
   title: string;
   description: string;
   sections: readonly LegalSection[];
+  breadcrumbs?: BreadcrumbItem[];
   children?: React.ReactNode;
 };
 
@@ -18,17 +21,19 @@ export function LegalPageShell({
   title,
   description,
   sections,
+  breadcrumbs,
   children,
 }: LegalPageShellProps) {
   return (
     <article className="mx-auto max-w-3xl space-y-8">
-      <header className="space-y-2 border-b border-border pb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-        <p className="text-sm text-muted-foreground">{description}</p>
-        <p className="text-xs text-muted-foreground">
-          Last updated {legalLastUpdated}
-        </p>
-      </header>
+      <PageHeader
+        variant="public"
+        breadcrumbs={breadcrumbs}
+        title={title}
+        description={description}
+        meta={`Last updated ${legalLastUpdated}`}
+        className="pb-6"
+      />
 
       {children}
 

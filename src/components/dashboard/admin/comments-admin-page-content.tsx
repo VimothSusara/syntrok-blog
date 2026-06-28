@@ -7,6 +7,8 @@ import type { PaginationMeta } from "@/lib/pagination";
 import { CommentsAdminToolbar } from "@/components/dashboard/admin/comments-admin-toolbar";
 import { CommentsAdminTable } from "@/components/dashboard/admin/comments-admin-table";
 import { Pagination } from "@/components/shared/pagination";
+import { PageHeader } from "@/components/shared/page-header";
+import { adminBreadcrumbs } from "@/lib/breadcrumbs";
 
 type CommentsAdminPageContentProps = {
   rows: CommentAdminRow[];
@@ -23,18 +25,16 @@ export function CommentsAdminPageContent({
 }: CommentsAdminPageContentProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Comments</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage comments and replies. Hide, mark spam, or delete content when
-          needed. Restore comments that were hidden by mistake.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {total === 0
+      <PageHeader
+        breadcrumbs={adminBreadcrumbs.section("Comments")}
+        title="Comments"
+        description="Manage comments and replies. Hide, mark spam, or delete content when needed. Restore comments that were hidden by mistake."
+        meta={
+          total === 0
             ? "No comments found."
-            : `${total} comment${total === 1 ? "" : "s"}`}
-        </p>
-      </div>
+            : `${total} comment${total === 1 ? "" : "s"}`
+        }
+      />
 
       <CommentsAdminToolbar
         basePath="/dashboard/admin/comments"

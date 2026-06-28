@@ -8,6 +8,10 @@ import { getPublishedPostBySlug, incrementPostViewCount } from "@/lib/db/posts";
 import { tiptapJsonToPlainText } from "@/lib/posts/content";
 import { PostAuthorSection } from "@/components/blog/post-author-section";
 import { CommentSection } from "@/components/blog/comment-section";
+import { PostLikeSection } from "@/components/blog/post-like-section";
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
+import { publicBreadcrumbs } from "@/lib/breadcrumbs";
+import { PostEngagementSection } from "@/components/blog/post-engagement-section";
 
 type PostPageProps = {
   params: Promise<{ slug: string }>;
@@ -66,10 +70,10 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
+      <PageBreadcrumb items={publicBreadcrumbs.post(post.title)} />
+
       <header className="space-y-4 border-b border-border pb-8">
-        <p className="text-sm font-medium tracking-wide text-primary uppercase">
-          Article
-        </p>
+        
         <h1 className="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
           {post.title}
         </h1>
@@ -102,6 +106,8 @@ export default async function PostPage({ params }: PostPageProps) {
       )}
 
       <TiptapViewer content={post.content} />
+
+      <PostEngagementSection postId={post.id} postSlug={post.slug} />
 
       <CommentSection postId={post.id} />
     </article>

@@ -25,3 +25,21 @@ export function canFollowUser(
   if (!target.username) return false;
   return true;
 }
+
+export function canReactToPost(
+  user: Pick<User, "id" | "status"> | null | undefined,
+  post: Pick<{ status: string }, "status"> | null | undefined,
+) {
+  if (!user || !post) return false;
+  if (user.status !== "ACTIVE") return false;
+  return post.status === "PUBLISHED";
+}
+
+export function canSavePost(
+  user: Pick<User, "id" | "status"> | null | undefined,
+  post: Pick<{ status: string }, "status"> | null | undefined,
+) {
+  if (!user || !post) return false;
+  if (user.status !== "ACTIVE") return false;
+  return post.status === "PUBLISHED";
+}

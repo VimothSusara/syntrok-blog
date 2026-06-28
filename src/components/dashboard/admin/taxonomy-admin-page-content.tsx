@@ -11,6 +11,8 @@ import { TaxonomyAdminToolbar } from "@/components/dashboard/admin/taxonomy-admi
 import { TaxonomyAdminTable } from "@/components/dashboard/admin/taxonomy-admin-table";
 import { TaxonomyEditDialog } from "@/components/dashboard/admin/taxonomy-edit-dialog";
 import { Pagination } from "@/components/shared/pagination";
+import { PageHeader } from "@/components/shared/page-header";
+import { adminBreadcrumbs } from "@/lib/breadcrumbs";
 
 type TaxonomyAdminPageContentProps = {
   title: string;
@@ -71,15 +73,16 @@ export function TaxonomyAdminPageContent({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p className="text-sm text-muted-foreground">{description}</p>
-        <p className="text-sm text-muted-foreground">
-          {total === 0
+      <PageHeader
+        breadcrumbs={adminBreadcrumbs.section(title)}
+        title={title}
+        description={description}
+        meta={
+          total === 0
             ? `No ${entityLabelPlural.toLowerCase()} found.`
-            : `${total} ${total === 1 ? entityLabel : entityLabelPlural.toLowerCase()}`}
-        </p>
-      </div>
+            : `${total} ${total === 1 ? entityLabel : entityLabelPlural.toLowerCase()}`
+        }
+      />
 
       <TaxonomyAdminToolbar
         basePath={basePath}

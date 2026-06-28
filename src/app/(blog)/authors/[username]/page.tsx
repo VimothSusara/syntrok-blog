@@ -13,6 +13,8 @@ import {
 } from "@/lib/db/authors";
 import { isFollowing } from "@/lib/db/follows";
 import { getDisplayName } from "@/lib/users/display";
+import { PageBreadcrumb } from "@/components/shared/page-breadcrumb";
+import { publicBreadcrumbs } from "@/lib/breadcrumbs";
 
 type AuthorPageProps = {
   params: Promise<{ username: string }>;
@@ -60,8 +62,12 @@ export default async function AuthorPage({
     page,
   );
 
+  const displayName = getDisplayName(author);
+
   return (
     <div className="space-y-8">
+      <PageBreadcrumb items={publicBreadcrumbs.author(displayName)} />
+
       <AuthorProfileHeader
         author={{ ...author, username: author.username }}
         viewerId={viewer?.id}

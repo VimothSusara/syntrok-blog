@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
+import { adminBreadcrumbs } from "@/lib/breadcrumbs";
 
 type AdminOverviewPageContentProps = {
   stats: AdminOverviewStats;
@@ -58,12 +60,11 @@ export function AdminOverviewPageContent({
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Administration</h1>
-        <p className="text-sm text-muted-foreground">
-          Platform snapshot and quick links to governance tools.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumbs={adminBreadcrumbs.overview()}
+        title="Administration"
+        description="Platform snapshot and quick links to governance tools."
+      />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

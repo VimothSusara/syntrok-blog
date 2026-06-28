@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import type { PublicPostFilters } from "@/lib/search-params/public-posts";
 import type { PostFilterOptions } from "@/lib/db/post-filter-options";
+import { publicPostSortLabels } from "@/lib/search-params/public-posts";
 
 type ActiveFilterBadgesProps = {
   filters: PublicPostFilters;
@@ -76,6 +77,22 @@ export function ActiveFilterBadges({
       label: `Date: ${from} – ${to}`,
       clear: () =>
         onChange({ ...filters, from: undefined, to: undefined, page: 1 }),
+    });
+  }
+
+  if (filters.sort !== "latest") {
+    badges.push({
+      key: "sort",
+      label: `Sort: ${publicPostSortLabels[filters.sort]}`,
+      clear: () => onChange({ ...filters, sort: "latest", page: 1 }),
+    });
+  }
+
+  if (filters.following) {
+    badges.push({
+      key: "following",
+      label: "Following feed",
+      clear: () => onChange({ ...filters, following: false, page: 1 }),
     });
   }
 

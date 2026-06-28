@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PostsPageContent } from "@/components/blog/posts-page-content";
+import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { getFollowedAuthorIds } from "@/lib/db/follows";
 import { getPostFilterOptions } from "@/lib/db/post-filter-options";
 import { getPublishedPostsPaginated } from "@/lib/db/posts";
 import { parsePublicPostFilters } from "@/lib/search-params/public-posts";
@@ -32,9 +34,17 @@ export default async function PostsPage({
 }) {
   const raw = await searchParams;
   const filters = parsePublicPostFilters(raw);
+  const viewer = await getCurrentUser();
+
+  const followedAuthorIds =
+    filters.following && viewer
+      ? await getFollowedAuthorIds(viewer.id)
+      : filters.following
+        ? []
+        : undefined;
 
   const [postsResult, options] = await Promise.all([
-    getPublishedPostsPaginated(filters),
+    getPublishedPostsPaginated(filters, { followedAuthorIds }),
     getPostFilterOptions(),
   ]);
 
@@ -45,6 +55,7 @@ export default async function PostsPage({
       pagination={postsResult.pagination}
       filters={filters}
       options={options}
+      isSignedIn={!!viewer}
     />
   );
 }

@@ -4,6 +4,7 @@ import { LegalPageShell } from "@/components/layout/legal-page-shell";
 import { helpSections } from "@/config/legal";
 import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/button";
+import { publicBreadcrumbs } from "@/lib/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Help",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function HelpPage() {
   return (
     <LegalPageShell
+      breadcrumbs={publicBreadcrumbs.legal("Help")}
       title="Help"
       description={`Quick answers for using ${siteConfig.name}.`}
       sections={helpSections}

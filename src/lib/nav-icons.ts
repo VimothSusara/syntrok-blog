@@ -12,6 +12,7 @@ import {
   Users,
   Folder,
   Tags,
+  Bookmark,
 } from "lucide-react";
 
 export const navIconKeys = [
@@ -27,6 +28,7 @@ export const navIconKeys = [
   "scroll-text",
   "folder",
   "tags",
+  "bookmark",
 ] as const;
 
 export type NavIconKey = (typeof navIconKeys)[number];
@@ -44,4 +46,5 @@ export const navIcons: Record<NavIconKey, LucideIcon> = {
   "scroll-text": ScrollText,
   folder: Folder,
   tags: Tags,
+  bookmark: Bookmark,
 };

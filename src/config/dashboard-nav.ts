@@ -21,6 +21,16 @@ export const dashboardNavItems: DashboardNavItem[] = [
     icon: "file-text",
   },
   {
+    title: "Saved posts",
+    href: "/dashboard/saved",
+    icon: "bookmark",
+  },
+  {
+    title: "Following",
+    href: "/posts?following=1",
+    icon: "users",
+  },
+  {
     title: "Settings",
     href: "/dashboard/settings",
     icon: "settings",

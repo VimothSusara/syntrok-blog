@@ -5,6 +5,7 @@ export const siteConfig = {
   subtagline:
     "A multi-author blog with AI-assisted writing, rich media, and semantic search.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "hello@syntrok.org",
   links: {
     terms: "/terms",
     privacy: "/privacy",

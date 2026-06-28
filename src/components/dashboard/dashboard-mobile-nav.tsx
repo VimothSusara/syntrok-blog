@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { DashboardNavItem } from "@/config/dashboard-nav";
-import { DashboardNavLinks } from "@/components/dashboard/dashboard-nav-links";
+import { DashboardSidebarNav } from "@/components/dashboard/dashboard-sidebar-nav";
 import { siteConfig } from "@/config/site";
 import {
   Sheet,
@@ -16,12 +16,14 @@ type DashboardMobileNavProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: DashboardNavItem[];
+  isSuperAdmin: boolean;
 };
 
 export function DashboardMobileNav({
   open,
   onOpenChange,
   items,
+  isSuperAdmin,
 }: DashboardMobileNavProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -30,9 +32,10 @@ export function DashboardMobileNav({
           <SheetTitle>{siteConfig.name}</SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col gap-4 p-4">
-          <DashboardNavLinks
+        <div className="flex flex-col gap-4 overflow-y-auto p-4 scrollbar-themed">
+          <DashboardSidebarNav
             items={items}
+            isSuperAdmin={isSuperAdmin}
             onNavigate={() => onOpenChange(false)}
           />
 

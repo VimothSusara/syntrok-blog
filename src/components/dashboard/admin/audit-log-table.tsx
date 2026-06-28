@@ -20,7 +20,7 @@ export function AuditLogTable({ logs }: { logs: AuditLogRow[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
+    <div className="overflow-x-auto rounded-xl border border-border scrollbar-themed">
       <table className="w-full text-sm">
         <thead className="border-b border-border bg-muted/40 text-left">
           <tr>

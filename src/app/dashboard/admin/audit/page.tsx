@@ -1,19 +1,22 @@
-import { AuditLogTable } from "@/components/dashboard/admin/audit-log-table";
-import { getRecentAuditLogs } from "@/lib/db/audit-logs";
+import { AuditAdminPageContent } from "@/components/dashboard/admin/audit-admin-page-content";
+import { getAuditLogsPaginated } from "@/lib/db/audit-logs";
+import { parseAuditAdminFilters } from "@/lib/search-params/audit-admin";
 
-export default async function AdminAuditPage() {
-  const logs = await getRecentAuditLogs(100);
+export default async function AdminAuditPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const filters = parseAuditAdminFilters(raw);
+  const { items, total, pagination } = await getAuditLogsPaginated(filters);
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Audit log</h1>
-        <p className="text-sm text-muted-foreground">
-          Recent platform actions. IP addresses are stored hashed for privacy.
-        </p>
-      </div>
-
-      <AuditLogTable logs={logs} />
-    </div>
+    <AuditAdminPageContent
+      rows={items}
+      total={total}
+      pagination={pagination}
+      filters={filters}
+    />
   );
 }

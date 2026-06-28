@@ -43,9 +43,9 @@ export default function RootLayout({
       <html
         lang="en"
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full`}
+        className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full scrollbar-themed`}
       >
-        <body className="min-h-full flex flex-col antialiased">
+        <body className="min-h-full flex flex-col antialiased scrollbar-themed">
           <ThemeProvider>{children}</ThemeProvider>
         </body>
       </html>

@@ -5,4 +5,5 @@ export const publicAuthorSelect = {
   email: true,
   imageUrl: true,
   bio: true,
+  status: true,
 } as const;

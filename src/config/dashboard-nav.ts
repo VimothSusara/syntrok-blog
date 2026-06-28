@@ -25,13 +25,6 @@ export const dashboardNavItems: DashboardNavItem[] = [
     href: "/dashboard/settings",
     icon: "settings",
   },
-  {
-    title: "Admin",
-    href: "/dashboard/admin",
-    icon: "shield",
-    exact: true,
-    superAdminOnly: true,
-  },
 ];
 
 export function getDashboardNav(isSuperAdmin: boolean) {

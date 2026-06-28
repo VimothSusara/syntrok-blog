@@ -10,6 +10,7 @@ type DashboardNavLinksProps = {
   items: DashboardNavItem[];
   onNavigate?: () => void;
   className?: string;
+  variant?: "default" | "nested";
 };
 
 function isActive(pathname: string, href: string, exact?: boolean) {
@@ -21,11 +22,13 @@ export function DashboardNavLinks({
   items,
   onNavigate,
   className,
+  variant = "default",
 }: DashboardNavLinksProps) {
   const pathname = usePathname();
+  const nested = variant === "nested";
 
   return (
-    <nav className={cn("flex flex-col gap-1", className)}>
+    <nav className={cn("flex flex-col gap-0.5", className)}>
       {items.map((item) => {
         const active = isActive(pathname, item.href, item.exact);
         const Icon = navIcons[item.icon];
@@ -36,13 +39,16 @@ export function DashboardNavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-lg font-medium transition-colors",
+              nested ? "py-1.5 pl-9 pr-3 text-xs" : "px-3 py-2 text-sm",
               active
-                ? "bg-primary text-primary-foreground"
+                ? nested
+                  ? "bg-primary/10 text-primary"
+                  : "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon className="size-4 shrink-0" />
+            {!nested && <Icon className="size-4 shrink-0" />}
             <span>{item.title}</span>
           </Link>
         );

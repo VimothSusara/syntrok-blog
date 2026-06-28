@@ -1,4 +1,5 @@
 import type { NavIconKey } from "@/lib/nav-icons";
+import type { DashboardNavItem } from "@/config/dashboard-nav";
 
 export type AdminNavItem = {
   title: string;
@@ -45,3 +46,12 @@ export const adminNavItems: AdminNavItem[] = [
     icon: "scroll-text",
   },
 ];
+
+export function adminNavItemsAsDashboard(): DashboardNavItem[] {
+  return adminNavItems.map((item) => ({
+    title: item.title,
+    href: item.href,
+    icon: item.icon,
+    exact: item.exact,
+  }));
+}

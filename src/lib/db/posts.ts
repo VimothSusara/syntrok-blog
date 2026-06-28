@@ -10,16 +10,10 @@ import type { PublicPostFilters } from "@/lib/search-params/public-posts";
 import type { DashboardPostFilters } from "@/lib/search-params/dashboard-posts";
 import { tiptapJsonToPlainText } from "@/lib/posts/content";
 import type { PostFormInput } from "@/lib/validations/post";
-
-const authorSelect = {
-  id: true,
-  name: true,
-  email: true,
-  imageUrl: true,
-} as const;
+import { publicAuthorSelect } from "./selects/public-author";
 
 const publicPostInclude = {
-  author: { select: authorSelect },
+  author: { select: publicAuthorSelect },
   category: { select: { id: true, name: true, slug: true } },
   tags: {
     include: { tag: { select: { id: true, name: true, slug: true } } },
@@ -55,7 +49,12 @@ function buildPublishedWhere(
   }
 
   if (filters.authors.length) {
-    where.authorId = { in: filters.authors };
+    where.author = {
+      OR: [
+        { username: { in: filters.authors } },
+        { id: { in: filters.authors } },
+      ],
+    };
   }
 
   if (filters.from || filters.to) {

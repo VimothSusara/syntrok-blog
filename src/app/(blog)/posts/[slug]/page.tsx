@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { PostTaxonomy } from "@/components/blog/post-taxonomy";
 import { TiptapViewer } from "@/components/editor/tiptap-viewer";
 import { siteConfig } from "@/config/site";
 import { getPublishedPostBySlug, incrementPostViewCount } from "@/lib/db/posts";
 import { tiptapJsonToPlainText } from "@/lib/posts/content";
+import { PostAuthorSection } from "@/components/blog/post-author-section";
+import { CommentSection } from "@/components/blog/comment-section";
 
 type PostPageProps = {
   params: Promise<{ slug: string }>;
@@ -70,12 +73,14 @@ export default async function PostPage({ params }: PostPageProps) {
         <h1 className="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
           {post.title}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {post.author.name ?? post.author.email}
-          {post.publishedAt
-            ? ` · ${post.publishedAt.toLocaleDateString()}`
-            : ""}
-        </p>
+
+        <PostAuthorSection
+          author={post.author}
+          publishedAt={post.publishedAt}
+        />
+
+        <PostTaxonomy category={post.category} tags={post.tags} />
+
         {post.summary && (
           <p className="text-lg leading-relaxed text-muted-foreground">
             {post.summary}
@@ -97,6 +102,8 @@ export default async function PostPage({ params }: PostPageProps) {
       )}
 
       <TiptapViewer content={post.content} />
+
+      <CommentSection postId={post.id} />
     </article>
   );
 }

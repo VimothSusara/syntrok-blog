@@ -47,15 +47,22 @@ export function ActiveFilterBadges({
     });
   }
 
-  for (const id of filters.authors) {
-    const author = options.authors.find((a) => a.id === id);
+  for (const username of filters.authors) {
+    const author = options.authors.find(
+      (a) => a.username === username || a.id === username,
+    );
+    const label =
+      author?.name ??
+      author?.email ??
+      (author?.username ? `@${author.username}` : username);
+
     badges.push({
-      key: `author-${id}`,
-      label: `Author: ${author?.name ?? author?.email ?? id}`,
+      key: `author-${username}`,
+      label: `Author: ${label}`,
       clear: () =>
         onChange({
           ...filters,
-          authors: filters.authors.filter((a) => a !== id),
+          authors: filters.authors.filter((a) => a !== username),
           page: 1,
         }),
     });

@@ -21,6 +21,7 @@ export const getPostFilterOptions = cache(async () => {
     })),
     authors: authors.map((a) => ({
       id: a.id,
+      username: a.username!,
       name: a.name,
       email: a.email,
       imageUrl: a.imageUrl,

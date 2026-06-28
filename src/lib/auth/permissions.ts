@@ -14,3 +14,14 @@ export function canEditPost(
 export function canComment(user?: Pick<User, "status"> | null) {
   return !!user && user.status === "ACTIVE";
 }
+
+export function canFollowUser(
+  viewer: Pick<User, "id" | "status"> | null | undefined,
+  target: Pick<User, "id" | "status" | "username"> | null | undefined,
+) {
+  if (!viewer || !target) return false;
+  if (viewer.status !== "ACTIVE" || target.status !== "ACTIVE") return false;
+  if (viewer.id === target.id) return false;
+  if (!target.username) return false;
+  return true;
+}

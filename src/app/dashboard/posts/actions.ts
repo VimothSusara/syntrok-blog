@@ -24,6 +24,7 @@ import {
   AuditEntityType,
 } from "../../../../generated/prisma/client";
 import { logAudit } from "@/lib/audit/log-audit";
+import { isProfileComplete } from "@/lib/auth/profile";
 
 export type PostActionState = {
   error?: string;
@@ -35,6 +36,16 @@ const ALLOWED_STATUS_CHANGES: PostStatus[] = [
   PostStatus.PUBLISHED,
   PostStatus.ARCHIVED,
 ];
+
+function requireProfileToPublish(
+  user: { username: string | null },
+  nextStatus: PostStatus,
+) {
+  if (nextStatus === PostStatus.PUBLISHED && !isProfileComplete(user)) {
+    return "Set a username in onboarding before publishing.";
+  }
+  return null;
+}
 
 function postAuditTargetUserId(
   actorId: string,
@@ -73,6 +84,10 @@ export async function createPostAction(
   }
 
   const data = parsed.data;
+
+  const publishError = requireProfileToPublish(user, data.status);
+  if (publishError) return { error: publishError };
+
   const slug = data.slug || slugify(data.title);
 
   if (await isSlugTaken(slug)) {
@@ -133,6 +148,9 @@ export async function updatePostAction(
 
   const data = parsed.data;
   const slug = data.slug || slugify(data.title);
+
+  const publishError = requireProfileToPublish(user, data.status);
+  if (publishError) return { error: publishError };
 
   if (await isSlugTaken(slug, postId)) {
     return { error: "That slug is already taken. Choose another." };
@@ -244,6 +262,10 @@ export async function updatePostStatusAction(
   if (post.status === PostStatus.DELETED) {
     throw new Error("Cannot change status of a deleted post");
   }
+
+  const publishError = requireProfileToPublish(user, status);
+  if (publishError) throw new Error(publishError);
+
   const updated = await updatePostStatus(postId, status);
   if (!updated) throw new Error("Post not found");
 

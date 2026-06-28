@@ -9,6 +9,7 @@ import {
 
 export type AuthorOption = {
   id: string;
+  username: string;
   name: string | null;
   email: string;
   imageUrl: string | null;
@@ -28,9 +29,9 @@ export function AuthorMultiSelect({
   onChange,
 }: AuthorMultiSelectProps) {
   const items: SearchMultiSelectItem[] = authors.map((author) => ({
-    value: author.id,
+    value: author.username,
     label: getUserLabel(author.name, author.email),
-    keywords: `${author.email} ${author.bio ?? ""}`,
+    keywords: `${author.username} ${author.email} ${author.bio ?? ""}`,
   }));
 
   return (
@@ -41,7 +42,7 @@ export function AuthorMultiSelect({
       placeholder="Select authors"
       searchPlaceholder="Search authors…"
       renderItem={(item) => {
-        const author = authors.find((a) => a.id === item.value)!;
+        const author = authors.find((a) => a.username === item.value)!;
         return (
           <div className="flex min-w-0 items-center gap-2">
             <Avatar size="sm">
@@ -55,8 +56,7 @@ export function AuthorMultiSelect({
             <div className="min-w-0">
               <div className="truncate font-medium">{item.label}</div>
               <div className="truncate text-xs text-muted-foreground">
-                {author.publishedCount} published
-                {author.bio ? ` · ${author.bio}` : ""}
+                @{author.username} · {author.publishedCount} published
               </div>
             </div>
           </div>

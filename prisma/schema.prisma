@@ -135,10 +135,27 @@ model User {
   auditLogsTargeted AuditLog[]    @relation("AuditTarget")
   authSessions      AuthSession[]
   postViews         PostView[]
+  following         UserFollow[]  @relation("UserFollows")
+  followers         UserFollow[]  @relation("UserFollowers")
 
   @@index([role])
   @@index([status])
   @@map("users")
+}
+
+model UserFollow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  follower  User @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
 }
 
 model Category {

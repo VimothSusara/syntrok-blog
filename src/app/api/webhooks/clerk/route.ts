@@ -36,7 +36,6 @@ async function syncUser(data: UserJSON) {
     where: { clerkId: data.id },
     update: {
       email,
-      username: data.username ?? null,
       name: getDisplayName(data),
       imageUrl: data.image_url ?? null,
       role: resolveRole(data.public_metadata),
@@ -44,7 +43,7 @@ async function syncUser(data: UserJSON) {
     create: {
       clerkId: data.id,
       email,
-      username: data.username ?? null,
+      username: null,
       name: getDisplayName(data),
       imageUrl: data.image_url ?? null,
       role: resolveRole(data.public_metadata),

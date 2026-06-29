@@ -25,6 +25,7 @@ import {
 } from "../../../../generated/prisma/client";
 import { logAudit } from "@/lib/audit/log-audit";
 import { isProfileComplete } from "@/lib/auth/profile";
+import { indexPostEmbeddings } from "@/lib/ai/runtime/index-post-embeddings";
 
 export type PostActionState = {
   error?: string;
@@ -95,6 +96,10 @@ export async function createPostAction(
   }
 
   const post = await createPost(user.id, { ...data, slug });
+
+  if (post.status === PostStatus.PUBLISHED) {
+    await indexPostEmbeddings(post.id, post.contentPlain ?? "");
+  }
 
   await logAudit({
     action: AuditAction.POST_CREATED,
@@ -171,6 +176,10 @@ export async function updatePostAction(
 
   const updatedPost = await updatePost(postId, { ...data, slug });
   if (!updatedPost) return { error: "Failed to update post." };
+
+  if (updatedPost.status === PostStatus.PUBLISHED) {
+    await indexPostEmbeddings(updatedPost.id, updatedPost.contentPlain ?? "");
+  }
 
   const statusChanged = post.status !== updatedPost.status;
 
@@ -268,6 +277,10 @@ export async function updatePostStatusAction(
 
   const updated = await updatePostStatus(postId, status);
   if (!updated) throw new Error("Post not found");
+
+  if (status === PostStatus.PUBLISHED) {
+    await indexPostEmbeddings(updated.id, updated.contentPlain ?? "");
+  }
 
   await logAudit({
     action: auditActionForStatusChange(post.status, status),

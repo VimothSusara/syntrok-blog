@@ -5,17 +5,13 @@ import { SiteNavLinks } from "@/components/layout/site-nav-links";
 import { SiteMobileNav } from "@/components/layout/site-mobile-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { SiteLogo } from "../shared/site-logo";
 
 export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link
-          href="/"
-          className="font-heading text-lg font-semibold tracking-tight text-foreground"
-        >
-          {siteConfig.name}
-        </Link>
+        <SiteLogo />
 
         <div className="flex items-center gap-1">
           <nav className="hidden items-center gap-4 md:flex">

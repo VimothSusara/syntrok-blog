@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { SiteLogo } from "../shared/site-logo";
 
 type AuthShellProps = {
   title: string;
@@ -17,17 +18,10 @@ export function AuthShell({
   children,
 }: AuthShellProps) {
   return (
-    <div className="grid min-h-full lg:grid-cols-2">
-      {/* Brand panel — your unique styling, token-based */}
-
-      <aside className="relative hidden flex-col justify-between border-r border-border bg-muted/40 p-10 lg:flex">
+    <div className="grid min-h-screen w-full lg:grid-cols-2">
+      <aside className="relative hidden h-full w-full flex-col justify-between border-r border-border bg-muted/40 p-10 lg:flex">
         <div>
-          <Link
-            href="/"
-            className="text-lg font-semibold tracking-tight text-foreground"
-          >
-            {siteConfig.name}
-          </Link>
+          <SiteLogo size="lg" />
         </div>
         <div className="space-y-4">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
@@ -42,14 +36,9 @@ export function AuthShell({
         </p>
       </aside>
       {/* Form panel */}
-      <main className="flex flex-col items-center justify-center p-6 sm:p-10">
+      <main className="flex h-full w-full flex-col items-center justify-center p-6 sm:p-10">
         <div className="mb-8 w-full max-w-md lg:hidden">
-          <Link
-            href="/"
-            className="text-lg font-semibold tracking-tight text-foreground"
-          >
-            {siteConfig.name}
-          </Link>
+          <SiteLogo />
         </div>
         <div className="w-full max-w-md space-y-6">
           <div className="space-y-2 text-center lg:text-left">
@@ -59,7 +48,7 @@ export function AuthShell({
             <p className="text-sm text-muted-foreground">{description}</p>
           </div>
           {children}
-          <p className="text-center text-sm text-muted-foreground">
+          {/* <p className="text-center text-sm text-muted-foreground">
             {alternateLabel}{" "}
             <Link
               href={alternateHref}
@@ -67,7 +56,7 @@ export function AuthShell({
             >
               {alternateHref.includes("sign-up") ? "Sign up" : "Sign in"}
             </Link>
-          </p>
+          </p> */}
         </div>
       </main>
     </div>

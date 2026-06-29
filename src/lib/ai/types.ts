@@ -4,7 +4,9 @@ export type AiFeatureKey =
   | "post.suggest_tags"
   | "post.writing_assistant"
   | "post.related_posts"
-  | "post.chat";
+  | "post.semantic_search"
+  | "post.chat"
+  | "post.image_generate";
 
 export interface TextGenerationParams {
   modelSlug: string;

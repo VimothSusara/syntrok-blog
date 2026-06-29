@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { SiteLogo } from "../shared/site-logo";
 
 export function SiteMobileNav() {
   return (
@@ -32,7 +33,8 @@ export function SiteMobileNav() {
 
       <SheetContent side="right" className="w-72">
         <SheetHeader>
-          <SheetTitle>{siteConfig.name}</SheetTitle>
+          <SheetTitle className="sr-only">Site navigation</SheetTitle>
+          <SiteLogo />
         </SheetHeader>
 
         <div className="flex flex-col gap-4 px-4">

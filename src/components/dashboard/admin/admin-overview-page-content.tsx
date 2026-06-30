@@ -82,11 +82,16 @@ export function AdminOverviewPageContent({
           value={stats.comments.total}
           hint={`${stats.comments.hidden} hidden/moderated`}
         />
-        <StatCard
-          label="Open reports"
-          value={stats.reports.open}
-          hint={`${stats.taxonomy.categories} categories · ${stats.taxonomy.tags} tags`}
-        />
+        <Link
+          href="/dashboard/admin/reports"
+          className="block transition-opacity hover:opacity-90"
+        >
+          <StatCard
+            label="Open reports"
+            value={stats.reports.open}
+            hint={`${stats.taxonomy.categories} categories · ${stats.taxonomy.tags} tags`}
+          />
+        </Link>
       </section>
 
       {(stats.users.suspended > 0 || stats.users.banned > 0) && (

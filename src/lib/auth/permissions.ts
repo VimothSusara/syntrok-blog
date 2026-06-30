@@ -43,3 +43,9 @@ export function canSavePost(
   if (user.status !== "ACTIVE") return false;
   return post.status === "PUBLISHED";
 }
+
+export function canReportContent(
+  user: Pick<User, "id" | "status"> | null | undefined,
+) {
+  return !!user && user.status === "ACTIVE";
+}

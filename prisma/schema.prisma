@@ -137,6 +137,7 @@ model User {
   postViews         PostView[]
   following         UserFollow[]  @relation("UserFollows")
   followers         UserFollow[]  @relation("UserFollowers")
+  savedPosts        PostSave[]
 
   @@index([role])
   @@index([status])
@@ -201,6 +202,7 @@ model Post {
   authorId           String
   categoryId         String?
   viewCount          Int        @default(0)
+  likeCount          Int        @default(0)
   isFeatured         Boolean    @default(false)
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
@@ -214,11 +216,27 @@ model Post {
   aiCaches    PostAiCache[]
   aiUsageLogs AiUsageLog[]
   postViews   PostView[]
+  saves       PostSave[]
 
   @@index([authorId])
   @@index([status, publishedAt(sort: Desc)])
+  @@index([status, likeCount(sort: Desc)])
+  @@index([status, viewCount(sort: Desc)])
   @@index([categoryId])
   @@map("posts")
+}
+
+model PostSave {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("post_saves")
 }
 
 model PostTag {
@@ -256,22 +274,25 @@ model Reaction {
   postId    String
   userId    String
   createdAt DateTime     @default(now())
-  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, userId, type])
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId, type])
   @@map("reactions")
 }
 
 model PostEmbedding {
-  id         String   @id @default(cuid())
+  id         String                @id @default(cuid())
   postId     String
-  chunkIndex Int      @default(0)
-  chunkText  String   @db.Text
+  chunkIndex Int                   @default(0)
+  chunkText  String                @db.Text
+  embedding  Unsupported("vector")
   modelSlug  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  post       Post                  @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, chunkIndex, modelSlug])
   @@map("post_embeddings")

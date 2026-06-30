@@ -4,16 +4,42 @@ import { revalidatePath } from "next/cache";
 import {
   AuditAction,
   AuditEntityType,
+  PostStatus,
 } from "../../../../../generated/prisma/client";
 import { logAudit } from "@/lib/audit/log-audit";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
-import { canComment } from "@/lib/auth/permissions";
+import {
+  canComment,
+  canReactToPost,
+  canSavePost,
+  canReportContent,
+} from "@/lib/auth/permissions";
 import { CommentError, createComment } from "@/lib/db/comments";
 import { parseCreateCommentForm } from "@/lib/validations/comment";
+import { ReactionError, togglePostLike } from "@/lib/db/reactions";
+import { PostSaveError, togglePostSave } from "@/lib/db/post-saves";
+import { createCommentReport, ReportError } from "@/lib/db/reports";
+import { parseReportCommentForm } from "@/lib/validations/report";
+
+export type ReportCommentActionState = {
+  error?: string;
+  success?: string;
+};
 
 export type CommentActionState = {
   error?: string;
   success?: string;
+};
+
+export type PostLikeActionResult = {
+  error?: string;
+  liked?: boolean;
+  likeCount?: number;
+};
+
+export type PostSaveActionResult = {
+  error?: string;
+  saved?: boolean;
 };
 
 export async function createCommentAction(
@@ -62,5 +88,80 @@ export async function createCommentAction(
       return { error: error.message };
     }
     return { error: "Could not post comment." };
+  }
+}
+
+export async function togglePostLikeAction(
+  postId: string,
+  postSlug: string,
+): Promise<PostLikeActionResult> {
+  const user = await getCurrentUser();
+  if (!user || !canReactToPost(user, { status: PostStatus.PUBLISHED })) {
+    return { error: "Sign in to like posts." };
+  }
+  try {
+    const result = await togglePostLike(postId, user.id);
+    revalidatePath(`/posts/${postSlug}`);
+    revalidatePath("/posts");
+    return {
+      liked: result.liked,
+      likeCount: result.likeCount,
+    };
+  } catch (error) {
+    if (error instanceof ReactionError) {
+      return { error: error.message };
+    }
+    return { error: "Could not update like." };
+  }
+}
+
+export async function togglePostSaveAction(
+  postId: string,
+  postSlug: string,
+): Promise<PostSaveActionResult> {
+  const user = await getCurrentUser();
+  if (!user || !canSavePost(user, { status: PostStatus.PUBLISHED })) {
+    return { error: "Sign in to save posts." };
+  }
+  try {
+    const result = await togglePostSave(postId, user.id);
+    revalidatePath(`/posts/${postSlug}`);
+    revalidatePath("/dashboard/saved");
+    return { saved: result.saved };
+  } catch (error) {
+    if (error instanceof PostSaveError) {
+      return { error: error.message };
+    }
+    return { error: "Could not update save." };
+  }
+}
+
+export async function reportCommentAction(
+  _prev: ReportCommentActionState,
+  formData: FormData,
+): Promise<ReportCommentActionState> {
+  const user = await getCurrentUser();
+  if (!user || !canReportContent(user)) {
+    return { error: "Sign in to report comments." };
+  }
+  const parsed = parseReportCommentForm(formData);
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Invalid report.",
+    };
+  }
+  try {
+    await createCommentReport({
+      commentId: parsed.data.commentId,
+      postId: parsed.data.postId,
+      reporterId: user.id,
+      reason: parsed.data.reason,
+    });
+    return { success: "Report submitted. Moderators will review it." };
+  } catch (error) {
+    if (error instanceof ReportError) {
+      return { error: error.message };
+    }
+    return { error: "Could not submit report." };
   }
 }

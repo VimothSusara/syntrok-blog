@@ -87,7 +87,11 @@ export const helpSections = [
   },
   {
     title: "Following authors",
-    body: `Visit an author's profile and click Follow to stay updated on their work. A dedicated following feed may be added in a future release.`,
+    body: `Visit an author's profile and click Follow to stay updated. Open Posts and enable the Following filter, or go to /posts?following=1, to see articles from authors you follow.`,
+  },
+  {
+    title: "Reporting content",
+    body: `Signed-in users can report comments that violate community guidelines. Use the Report button on a comment and describe the issue. Moderators review reports in the admin panel.`,
   },
   {
     title: "Account issues",

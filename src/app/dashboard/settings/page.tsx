@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/dashboard/profile-form";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { authorProfileUrl } from "@/lib/urls/authors";
+import { PageHeader } from "@/components/shared/page-header";
+import { dashboardBreadcrumbs } from "@/lib/breadcrumbs";
 
 export default async function DashboardSettingsPage() {
   const user = await getCurrentUser();
@@ -12,12 +14,11 @@ export default async function DashboardSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your public author profile.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumbs={dashboardBreadcrumbs.settings()}
+        title="Settings"
+        description="Manage your public author profile."
+      />
 
       {profileUrl && (
         <p className="text-sm text-muted-foreground">

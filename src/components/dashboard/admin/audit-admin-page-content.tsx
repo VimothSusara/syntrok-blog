@@ -6,6 +6,8 @@ import type { PaginationMeta } from "@/lib/pagination";
 import { AuditLogTable } from "@/components/dashboard/admin/audit-log-table";
 import { AuditAdminToolbar } from "@/components/dashboard/admin/audit-admin-toolbar";
 import { Pagination } from "@/components/shared/pagination";
+import { PageHeader } from "@/components/shared/page-header";
+import { adminBreadcrumbs } from "@/lib/breadcrumbs";
 
 type AuditLogRow = React.ComponentProps<typeof AuditLogTable>["logs"][number];
 
@@ -24,18 +26,16 @@ export function AuditAdminPageContent({
 }: AuditAdminPageContentProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Audit log</h1>
-        <p className="text-sm text-muted-foreground">
-          Platform actions with actor, target, and metadata. IP addresses are
-          stored hashed for privacy.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {total === 0
+      <PageHeader
+        breadcrumbs={adminBreadcrumbs.section("Audit log")}
+        title="Audit log"
+        description="Platform actions with actor, target, and metadata. IP addresses are stored hashed for privacy."
+        meta={
+          total === 0
             ? "No audit events found."
-            : `${total} event${total === 1 ? "" : "s"}`}
-        </p>
-      </div>
+            : `${total} event${total === 1 ? "" : "s"}`
+        }
+      />
 
       <AuditAdminToolbar basePath="/dashboard/admin/audit" filters={filters} />
 

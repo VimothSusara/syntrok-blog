@@ -22,6 +22,8 @@ export const postFormSchema = z.object({
   coverImagePublicId: z.string().optional().or(z.literal("")),
   categoryId: z.cuid2().optional().or(z.literal("")),
   tagIds: z.array(z.cuid2()).default([]),
+  metaTitle: z.string().max(70).optional().or(z.literal("")),
+  metaDescription: z.string().max(320).optional().or(z.literal("")),
 });
 
 export type PostFormInput = z.infer<typeof postFormSchema>;
@@ -37,5 +39,7 @@ export function parsePostForm(formData: FormData) {
     coverImagePublicId: formData.get("coverImagePublicId") ?? "",
     categoryId: formData.get("categoryId") ?? "",
     tagIds: formData.getAll("tagIds").map(String),
+    metaTitle: formData.get("metaTitle") ?? "",
+    metaDescription: formData.get("metaDescription") ?? "",
   });
 }

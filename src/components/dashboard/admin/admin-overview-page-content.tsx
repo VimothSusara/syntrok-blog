@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
+import { adminBreadcrumbs } from "@/lib/breadcrumbs";
 
 type AdminOverviewPageContentProps = {
   stats: AdminOverviewStats;
@@ -58,12 +60,11 @@ export function AdminOverviewPageContent({
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Administration</h1>
-        <p className="text-sm text-muted-foreground">
-          Platform snapshot and quick links to governance tools.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumbs={adminBreadcrumbs.overview()}
+        title="Administration"
+        description="Platform snapshot and quick links to governance tools."
+      />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -81,11 +82,16 @@ export function AdminOverviewPageContent({
           value={stats.comments.total}
           hint={`${stats.comments.hidden} hidden/moderated`}
         />
-        <StatCard
-          label="Open reports"
-          value={stats.reports.open}
-          hint={`${stats.taxonomy.categories} categories · ${stats.taxonomy.tags} tags`}
-        />
+        <Link
+          href="/dashboard/admin/reports"
+          className="block transition-opacity hover:opacity-90"
+        >
+          <StatCard
+            label="Open reports"
+            value={stats.reports.open}
+            hint={`${stats.taxonomy.categories} categories · ${stats.taxonomy.tags} tags`}
+          />
+        </Link>
       </section>
 
       {(stats.users.suspended > 0 || stats.users.banned > 0) && (

@@ -11,6 +11,8 @@ import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { CoverImageField } from "@/components/dashboard/cover-image-field";
 import { CategoryCombobox } from "@/components/filters/category-combobox";
 import { TagMultiSelect } from "@/components/filters/tag-multi-select";
+import { PostAiPanel } from "@/components/dashboard/post-ai-panel";
+import { QuickCreateTaxonomyDialog } from "@/components/dashboard/quick-create-taxonomy-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,19 +23,40 @@ import type { Post } from "../../../generated/prisma/client";
 type PostFormProps = {
   mode: "create" | "edit";
   userId: string;
+  canManageTaxonomy?: boolean;
   post?: Post & { tags?: { tagId: string }[] };
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; slug?: string }[];
   tags: { id: string; name: string; slug: string }[];
 };
 
 const initialState: PostActionState = {};
 
+function FieldLabel({
+  htmlFor,
+  children,
+  action,
+}: {
+  htmlFor?: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <label htmlFor={htmlFor} className="text-sm font-medium">
+        {children}
+      </label>
+      {action}
+    </div>
+  );
+}
+
 export function PostForm({
   mode,
   post,
   userId,
-  categories,
-  tags,
+  canManageTaxonomy = false,
+  categories: initialCategories,
+  tags: initialTags,
 }: PostFormProps) {
   const action =
     mode === "create"
@@ -52,6 +75,14 @@ export function PostForm({
   const [tagIds, setTagIds] = useState<string[]>(
     post?.tags?.map((t) => t.tagId) ?? [],
   );
+  const [summary, setSummary] = useState(post?.summary ?? "");
+  const [metaTitle, setMetaTitle] = useState(post?.metaTitle ?? "");
+  const [metaDescription, setMetaDescription] = useState(
+    post?.metaDescription ?? "",
+  );
+
+  const [categories, setCategories] = useState(initialCategories);
+  const [availableTags, setAvailableTags] = useState(initialTags);
 
   const onTitleChange = (value: string) => {
     setTitle(value);
@@ -120,13 +151,61 @@ export function PostForm({
           id="summary"
           name="summary"
           rows={3}
-          defaultValue={post?.summary ?? ""}
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
           placeholder="Short description for listings and SEO"
         />
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label htmlFor="metaTitle" className="text-sm font-medium">
+            SEO title
+          </label>
+          <Input
+            id="metaTitle"
+            name="metaTitle"
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            placeholder="Optional SEO title"
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="metaDescription" className="text-sm font-medium">
+            Meta description
+          </label>
+          <Textarea
+            id="metaDescription"
+            name="metaDescription"
+            rows={3}
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            placeholder="Optional meta description"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <label className="text-sm font-medium">Category</label>
+        <FieldLabel
+          action={
+            canManageTaxonomy ? (
+              <QuickCreateTaxonomyDialog
+                kind="category"
+                onCreated={(category) => {
+                  setCategories((prev) => {
+                    if (prev.some((c) => c.id === category.id)) return prev;
+                    return [...prev, category].sort((a, b) =>
+                      a.name.localeCompare(b.name),
+                    );
+                  });
+                  setCategoryId(category.id);
+                }}
+              />
+            ) : null
+          }
+        >
+          Category
+        </FieldLabel>
         <CategoryCombobox
           categories={categories}
           value={categoryId}
@@ -135,14 +214,56 @@ export function PostForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Tags</label>
-        <TagMultiSelect tags={tags} value={tagIds} onChange={setTagIds} />
+        <FieldLabel
+          action={
+            canManageTaxonomy ? (
+              <QuickCreateTaxonomyDialog
+                kind="tag"
+                onCreated={(tag) => {
+                  setAvailableTags((prev) => {
+                    if (prev.some((t) => t.id === tag.id)) return prev;
+                    return [...prev, tag].sort((a, b) =>
+                      a.name.localeCompare(b.name),
+                    );
+                  });
+                  setTagIds((prev) =>
+                    prev.includes(tag.id) ? prev : [...prev, tag.id],
+                  );
+                }}
+              />
+            ) : null
+          }
+        >
+          Tags
+        </FieldLabel>
+        <TagMultiSelect
+          tags={availableTags}
+          value={tagIds}
+          onChange={setTagIds}
+        />
       </div>
 
       <CoverImageField
         userId={userId}
         defaultUrl={post?.coverImageUrl}
         defaultPublicId={post?.coverImagePublicId}
+      />
+
+      <PostAiPanel
+        postId={post?.id}
+        title={title}
+        content={content}
+        selectedTagIds={tagIds}
+        onApplySummary={setSummary}
+        onApplySeoMeta={(meta) => {
+          setMetaTitle(meta.title);
+          setMetaDescription(meta.description);
+        }}
+        onApplyContent={setContent}
+        onApplyTags={({ tagIds: nextTagIds, tags }) => {
+          setAvailableTags(tags);
+          setTagIds(nextTagIds);
+        }}
       />
 
       <div className="space-y-2">

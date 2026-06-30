@@ -6,6 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import { siteConfig } from "@/config/site";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { SiteLogo } from "../shared/site-logo";
 
 type DashboardHeaderProps = {
   onMenuClick: () => void;
@@ -27,12 +28,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <Menu className="size-5" />
           </Button>
 
-          <Link
-            href="/dashboard"
-            className="font-semibold text-foreground lg:hidden"
-          >
-            {siteConfig.name}
-          </Link>
+          <SiteLogo href="/dashboard" className="lg:hidden" />
         </div>
 
         <div className="flex items-center gap-2">

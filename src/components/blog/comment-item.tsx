@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import type { PublicComment } from "@/lib/db/comments";
 import { CommentForm } from "@/components/blog/comment-form";
+import { ReportCommentDialog } from "@/components/blog/report-comment-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { authorProfileUrl } from "@/lib/urls/authors";
@@ -15,6 +16,9 @@ type CommentItemProps = {
   postId: string;
   canReply: boolean;
   isReply?: boolean;
+  isSignedIn?: boolean;
+  viewerId?: string;
+  reportedCommentIds?: string[];
 };
 
 export function CommentItem({
@@ -22,17 +26,25 @@ export function CommentItem({
   postId,
   canReply,
   isReply = false,
+  isSignedIn,
+  viewerId,
+  reportedCommentIds = [],
 }: CommentItemProps) {
   const [replyOpen, setReplyOpen] = useState(false);
   const displayName = getDisplayName(comment.user);
   const profileHref = authorProfileUrl(comment.user);
 
+  const isOwnComment = viewerId === comment.user.id;
+  const isReported = reportedCommentIds.includes(comment.id);
+  const showReport = !!isSignedIn && !isOwnComment && !isReported;
+
   return (
     <article
+      id={`comment-${comment.id}`}
       className={
         isReply
-          ? "space-y-3"
-          : "space-y-3 border-b border-border pb-6 last:border-0"
+          ? "scroll-mt-24 space-y-3"
+          : "scroll-mt-24 space-y-3 border-b border-border pb-6 last:border-0"
       }
     >
       <div className="flex gap-3">
@@ -82,16 +94,34 @@ export function CommentItem({
             {comment.content}
           </p>
 
-          {!isReply && canReply && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2"
-              onClick={() => setReplyOpen((open) => !open)}
-            >
-              Reply
-            </Button>
+          {(showReport || (!isReply && canReply) || isReported) && (
+            <div className="flex flex-wrap items-center gap-1">
+              {!isReply && canReply && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2"
+                  onClick={() => setReplyOpen((open) => !open)}
+                >
+                  Reply
+                </Button>
+              )}
+
+              {showReport ? (
+                <ReportCommentDialog
+                  commentId={comment.id}
+                  postId={postId}
+                  isSignedIn
+                />
+              ) : null}
+
+              {isReported && isSignedIn && !isOwnComment ? (
+                <span className="px-2 text-xs text-muted-foreground">
+                  Reported
+                </span>
+              ) : null}
+            </div>
           )}
 
           {!isReply && replyOpen && (
@@ -113,8 +143,11 @@ export function CommentItem({
               key={reply.id}
               comment={reply}
               postId={postId}
-              canReply={false}
+              canReply={canReply}
               isReply
+              isSignedIn={isSignedIn}
+              viewerId={viewerId}
+              reportedCommentIds={reportedCommentIds}
             />
           ))}
         </div>

@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Heart } from "lucide-react";
 
 type PostCardProps = {
   post: {
@@ -14,6 +15,7 @@ type PostCardProps = {
     summary: string | null;
     coverImageUrl: string | null;
     publishedAt: Date | null;
+    likeCount?: number;
     category?: { name: string; slug: string } | null;
     author: {
       name: string | null;
@@ -27,7 +29,7 @@ export function PostCard({ post }: PostCardProps) {
   const dateLabel = post.publishedAt
     ? post.publishedAt.toLocaleDateString()
     : null;
-
+  const likeCount = post.likeCount ?? 0;
   return (
     <Card
       size="sm"
@@ -47,7 +49,6 @@ export function PostCard({ post }: PostCardProps) {
         ) : (
           <div className="aspect-[16/10] w-full bg-muted" />
         )}
-
         <CardHeader className="flex-1 gap-1">
           {post.category && (
             <p className="text-xs font-medium text-primary">
@@ -66,6 +67,12 @@ export function PostCard({ post }: PostCardProps) {
               {post.summary}
             </p>
           )}
+          <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+            <Heart className="size-3.5" aria-hidden />
+            <span>
+              {likeCount} {likeCount === 1 ? "like" : "likes"}
+            </span>
+          </p>
         </CardHeader>
       </Link>
     </Card>

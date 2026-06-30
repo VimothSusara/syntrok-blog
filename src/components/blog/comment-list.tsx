@@ -5,9 +5,19 @@ type CommentListProps = {
   comments: PublicComment[];
   postId: string;
   canReply: boolean;
+  isSignedIn?: boolean;
+  viewerId?: string;
+  reportedCommentIds?: string[];
 };
 
-export function CommentList({ comments, postId, canReply }: CommentListProps) {
+export function CommentList({
+  comments,
+  postId,
+  canReply,
+  isSignedIn,
+  viewerId,
+  reportedCommentIds,
+}: CommentListProps) {
   if (!comments.length) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -24,6 +34,9 @@ export function CommentList({ comments, postId, canReply }: CommentListProps) {
           comment={comment}
           postId={postId}
           canReply={canReply}
+          isSignedIn={isSignedIn}
+          viewerId={viewerId}
+          reportedCommentIds={reportedCommentIds}
         />
       ))}
     </div>

@@ -22,8 +22,14 @@ const publicPostInclude = {
 
 function buildPublishedWhere(
   filters: PublicPostFilters,
+  followedAuthorIds?: string[] | null,
 ): Prisma.PostWhereInput {
   const where: Prisma.PostWhereInput = { status: PostStatus.PUBLISHED };
+
+  if (filters.following) {
+    const ids = followedAuthorIds ?? [];
+    where.authorId = ids.length > 0 ? { in: ids } : { in: [] };
+  }
 
   if (filters.q) {
     where.OR = [
@@ -67,14 +73,40 @@ function buildPublishedWhere(
   return where;
 }
 
-export async function getPublishedPostsPaginated(filters: PublicPostFilters) {
-  const where = buildPublishedWhere(filters);
+function buildPublishedOrderBy(
+  sort: PublicPostFilters["sort"],
+): Prisma.PostOrderByWithRelationInput[] {
+  switch (sort) {
+    case "popular":
+      return [{ likeCount: "desc" }, { publishedAt: "desc" }];
+    case "views":
+      return [{ viewCount: "desc" }, { publishedAt: "desc" }];
+    case "latest":
+    default:
+      return [{ publishedAt: "desc" }];
+  }
+}
+
+type PublishedPostsQueryOptions = {
+  followedAuthorIds?: string[] | null;
+};
+
+export async function getPublishedPostsPaginated(
+  filters: PublicPostFilters,
+  options?: PublishedPostsQueryOptions,
+) {
+  const followedAuthorIds = filters.following
+    ? (options?.followedAuthorIds ?? [])
+    : undefined;
+
+  const where = buildPublishedWhere(filters, followedAuthorIds);
   const skip = getSkip(filters.page, filters.pageSize);
+  const orderBy = buildPublishedOrderBy(filters.sort);
 
   const [items, total] = await Promise.all([
     prisma.post.findMany({
       where,
-      orderBy: { publishedAt: "desc" },
+      orderBy,
       skip,
       take: filters.pageSize,
       include: publicPostInclude,
@@ -87,6 +119,30 @@ export async function getPublishedPostsPaginated(filters: PublicPostFilters) {
     total,
     pagination: buildPaginationMeta(filters.page, filters.pageSize, total),
   };
+}
+
+export async function getTrendingPublishedPosts(limit = 6) {
+  return prisma.post.findMany({
+    where: { status: PostStatus.PUBLISHED },
+    orderBy: [{ likeCount: "desc" }, { publishedAt: "desc" }],
+    take: limit,
+    include: publicPostInclude,
+  });
+}
+
+export async function getRecentPublishedPosts(
+  limit = 6,
+  excludeIds: string[] = [],
+) {
+  return prisma.post.findMany({
+    where: {
+      status: PostStatus.PUBLISHED,
+      ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
+    },
+    orderBy: { publishedAt: "desc" },
+    take: limit,
+    include: publicPostInclude,
+  });
 }
 
 export async function getPublishedPostBySlug(slug: string) {
@@ -169,6 +225,8 @@ export async function createPost(authorId: string, input: PostFormInput) {
       publishedAt,
       authorId,
       categoryId: input.categoryId || null,
+      metaTitle: input.metaTitle?.trim() || null,
+      metaDescription: input.metaDescription?.trim() || null,
       ...(tagIds.length
         ? { tags: { create: tagIds.map((tagId) => ({ tagId })) } }
         : {}),
@@ -209,6 +267,8 @@ export async function updatePost(postId: string, input: PostFormInput) {
         ...(tagIds.length
           ? { tags: { create: tagIds.map((tagId) => ({ tagId })) } }
           : {}),
+        metaTitle: input.metaTitle?.trim() || null,
+        metaDescription: input.metaDescription?.trim() || null,
       },
     });
   });
@@ -247,3 +307,7 @@ export async function updatePostStatus(postId: string, status: PostStatus) {
 }
 
 export type { PaginationMeta };
+
+export type PublicPostListItem = Awaited<
+  ReturnType<typeof getTrendingPublishedPosts>
+>[number];

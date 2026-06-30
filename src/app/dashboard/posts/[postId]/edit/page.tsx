@@ -7,6 +7,9 @@ import { getActiveTags } from "@/lib/db/tags";
 import { getPostById } from "@/lib/db/posts";
 import { PostForm } from "@/components/dashboard/post-form";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
+import { dashboardBreadcrumbs } from "@/lib/breadcrumbs";
+import { isSuperAdmin } from "@/lib/auth/permissions";
 
 export default async function EditPostPage({
   params,
@@ -26,20 +29,25 @@ export default async function EditPostPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Edit post</h1>
-        {post.status === "PUBLISHED" && (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/posts/${post.slug}`} target="_blank">
-              View live
-            </Link>
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        breadcrumbs={dashboardBreadcrumbs.editPost(post.title)}
+        title="Edit post"
+        actions={
+          post.status === "PUBLISHED" ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/posts/${post.slug}`} target="_blank">
+                View live
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      />
+
       <PostForm
         mode="edit"
         post={post}
         userId={user.id}
+        canManageTaxonomy={isSuperAdmin(user)}
         categories={categories}
         tags={tags}
       />

@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { isSuperAdmin } from "@/lib/auth/permissions";
 import { getActiveCategories } from "@/lib/db/categories";
 import { getActiveTags } from "@/lib/db/tags";
 import { PostForm } from "@/components/dashboard/post-form";
+import { PageHeader } from "@/components/shared/page-header";
+import { dashboardBreadcrumbs } from "@/lib/breadcrumbs";
 
 export default async function NewPostPage() {
   const user = await getCurrentUser();
@@ -15,10 +18,15 @@ export default async function NewPostPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold">New post</h1>
+      <PageHeader
+        breadcrumbs={dashboardBreadcrumbs.newPost()}
+        title="New post"
+      />
+
       <PostForm
         mode="create"
         userId={user.id}
+        canManageTaxonomy={isSuperAdmin(user)}
         categories={categories}
         tags={tags}
       />

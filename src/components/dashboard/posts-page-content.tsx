@@ -9,6 +9,8 @@ import type { DashboardPostFilters } from "@/lib/search-params/dashboard-posts";
 import { dashboardFiltersToParams } from "@/lib/search-params/dashboard-posts";
 import type { PaginationMeta } from "@/lib/pagination";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
+import { dashboardBreadcrumbs } from "@/lib/breadcrumbs";
 
 type DashboardPostsPageContentProps = {
   posts: Post[];
@@ -23,12 +25,15 @@ export function DashboardPostsPageContent({
 }: DashboardPostsPageContentProps) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">My posts</h1>
-        <Button asChild>
-          <Link href="/dashboard/posts/new">New post</Link>
-        </Button>
-      </div>
+      <PageHeader
+        breadcrumbs={dashboardBreadcrumbs.myPosts()}
+        title="My posts"
+        actions={
+          <Button asChild>
+            <Link href="/dashboard/posts/new">New post</Link>
+          </Button>
+        }
+      />
 
       <PostsTableToolbar filters={filters} />
       <PostsTable posts={posts} />

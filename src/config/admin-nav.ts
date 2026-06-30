@@ -36,6 +36,11 @@ export const adminNavItems: AdminNavItem[] = [
     icon: "message-square",
   },
   {
+    title: "Reports",
+    href: "/dashboard/admin/reports",
+    icon: "scroll-text",
+  },
+  {
     title: "AI config",
     href: "/dashboard/admin/ai",
     icon: "bot",

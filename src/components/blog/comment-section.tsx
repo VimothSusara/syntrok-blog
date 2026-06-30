@@ -7,6 +7,7 @@ import {
   getApprovedCommentCountForPost,
   getApprovedCommentsForPost,
 } from "@/lib/db/comments";
+import { getOpenCommentReportIdsForPost } from "@/lib/db/reports";
 
 type CommentSectionProps = {
   postId: string;
@@ -20,6 +21,10 @@ export async function CommentSection({ postId }: CommentSectionProps) {
   ]);
 
   const mayComment = canComment(viewer);
+
+  const reportedCommentIds = viewer
+    ? await getOpenCommentReportIdsForPost(postId, viewer.id)
+    : [];
 
   return (
     <section className="space-y-6 border-t border-border pt-8">
@@ -47,7 +52,14 @@ export async function CommentSection({ postId }: CommentSectionProps) {
         </p>
       )}
 
-      <CommentList comments={comments} postId={postId} canReply={mayComment} />
+      <CommentList
+        comments={comments}
+        postId={postId}
+        canReply={mayComment}
+        isSignedIn={!!viewer}
+        viewerId={viewer?.id}
+        reportedCommentIds={reportedCommentIds}
+      />
     </section>
   );
 }

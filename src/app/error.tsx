@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { StatusPage } from "@/components/layout/status-page";
 import { Button } from "@/components/ui/button";
 
@@ -18,8 +16,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <>
-      <SiteHeader />
+    <div className="min-h-screen bg-background">
       <StatusPage
         code="Error"
         title="Something went wrong"
@@ -32,7 +29,6 @@ export default function Error({
           Try again
         </Button>
       </div>
-      <SiteFooter />
-    </>
+    </div>
   );
 }

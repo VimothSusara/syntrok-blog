@@ -12,11 +12,19 @@ import {
   canComment,
   canReactToPost,
   canSavePost,
+  canReportContent,
 } from "@/lib/auth/permissions";
 import { CommentError, createComment } from "@/lib/db/comments";
 import { parseCreateCommentForm } from "@/lib/validations/comment";
 import { ReactionError, togglePostLike } from "@/lib/db/reactions";
 import { PostSaveError, togglePostSave } from "@/lib/db/post-saves";
+import { createCommentReport, ReportError } from "@/lib/db/reports";
+import { parseReportCommentForm } from "@/lib/validations/report";
+
+export type ReportCommentActionState = {
+  error?: string;
+  success?: string;
+};
 
 export type CommentActionState = {
   error?: string;
@@ -125,5 +133,35 @@ export async function togglePostSaveAction(
       return { error: error.message };
     }
     return { error: "Could not update save." };
+  }
+}
+
+export async function reportCommentAction(
+  _prev: ReportCommentActionState,
+  formData: FormData,
+): Promise<ReportCommentActionState> {
+  const user = await getCurrentUser();
+  if (!user || !canReportContent(user)) {
+    return { error: "Sign in to report comments." };
+  }
+  const parsed = parseReportCommentForm(formData);
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Invalid report.",
+    };
+  }
+  try {
+    await createCommentReport({
+      commentId: parsed.data.commentId,
+      postId: parsed.data.postId,
+      reporterId: user.id,
+      reason: parsed.data.reason,
+    });
+    return { success: "Report submitted. Moderators will review it." };
+  } catch (error) {
+    if (error instanceof ReportError) {
+      return { error: error.message };
+    }
+    return { error: "Could not submit report." };
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, ReactNode } from "react";
 import Link from "next/link";
 import {
   createPostAction,
@@ -37,8 +37,8 @@ function FieldLabel({
   action,
 }: {
   htmlFor?: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
+  children: ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between gap-2">

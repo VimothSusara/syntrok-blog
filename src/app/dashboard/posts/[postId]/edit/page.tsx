@@ -9,6 +9,7 @@ import { PostForm } from "@/components/dashboard/post-form";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { dashboardBreadcrumbs } from "@/lib/breadcrumbs";
+import { isSuperAdmin } from "@/lib/auth/permissions";
 
 export default async function EditPostPage({
   params,
@@ -41,11 +42,12 @@ export default async function EditPostPage({
           ) : undefined
         }
       />
-      
+
       <PostForm
         mode="edit"
         post={post}
         userId={user.id}
+        canManageTaxonomy={isSuperAdmin(user)}
         categories={categories}
         tags={tags}
       />

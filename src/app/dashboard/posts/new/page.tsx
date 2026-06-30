@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { isSuperAdmin } from "@/lib/auth/permissions";
 import { getActiveCategories } from "@/lib/db/categories";
 import { getActiveTags } from "@/lib/db/tags";
 import { PostForm } from "@/components/dashboard/post-form";
@@ -25,6 +26,7 @@ export default async function NewPostPage() {
       <PostForm
         mode="create"
         userId={user.id}
+        canManageTaxonomy={isSuperAdmin(user)}
         categories={categories}
         tags={tags}
       />

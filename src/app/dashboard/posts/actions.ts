@@ -25,7 +25,7 @@ import {
 } from "../../../../generated/prisma/client";
 import { logAudit } from "@/lib/audit/log-audit";
 import { isProfileComplete } from "@/lib/auth/profile";
-import { indexPostEmbeddings } from "@/lib/ai/runtime/index-post-embeddings";
+import { enqueuePostPublishAiJobs } from "@/lib/ai/jobs/enqueue";
 
 export type PostActionState = {
   error?: string;
@@ -98,7 +98,7 @@ export async function createPostAction(
   const post = await createPost(user.id, { ...data, slug });
 
   if (post.status === PostStatus.PUBLISHED) {
-    await indexPostEmbeddings(post.id, post.contentPlain ?? "");
+    await enqueuePostPublishAiJobs(post.id);
   }
 
   await logAudit({
@@ -178,7 +178,7 @@ export async function updatePostAction(
   if (!updatedPost) return { error: "Failed to update post." };
 
   if (updatedPost.status === PostStatus.PUBLISHED) {
-    await indexPostEmbeddings(updatedPost.id, updatedPost.contentPlain ?? "");
+    await enqueuePostPublishAiJobs(post.id);
   }
 
   const statusChanged = post.status !== updatedPost.status;
@@ -279,7 +279,7 @@ export async function updatePostStatusAction(
   if (!updated) throw new Error("Post not found");
 
   if (status === PostStatus.PUBLISHED) {
-    await indexPostEmbeddings(updated.id, updated.contentPlain ?? "");
+    await enqueuePostPublishAiJobs(post.id);
   }
 
   await logAudit({

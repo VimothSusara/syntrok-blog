@@ -49,3 +49,12 @@ export function canReportContent(
 ) {
   return !!user && user.status === "ACTIVE";
 }
+
+export function canUsePostAi(
+  user: Pick<User, "id" | "status" | "role"> | null | undefined,
+  post: { authorId: string } | null | undefined,
+) {
+  if (!user || !post) return false;
+  if (user.status !== "ACTIVE") return false;
+  return user.role === "SUPERADMIN" || user.id === post.authorId;
+}

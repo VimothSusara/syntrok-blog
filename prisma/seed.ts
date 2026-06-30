@@ -10,6 +10,15 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
+const TEXT_MODEL_SLUG = "gemini-2.5-flash";
+const TEXT_MODEL_NAME = "Gemini 2.5 Flash";
+const LEGACY_TEXT_MODEL_SLUG = "gemini-1.5-flash";
+
+const TEXT_MODEL_CONFIG = {
+  temperature: 0.7,
+  maxOutputTokens: 2048,
+};
+
 function logStep(message: string) {
   console.log(`[seed] ${message}`);
 }
@@ -34,27 +43,52 @@ async function main() {
     },
   });
 
+  logStep("Migrating legacy text model slug if needed");
+  const legacyTextModel = await prisma.aiModel.findFirst({
+    where: {
+      providerId: gemini.id,
+      slug: LEGACY_TEXT_MODEL_SLUG,
+      modelType: AiModelType.TEXT,
+    },
+    select: { id: true },
+  });
+
+  if (legacyTextModel) {
+    await prisma.aiModel.update({
+      where: { id: legacyTextModel.id },
+      data: {
+        slug: TEXT_MODEL_SLUG,
+        displayName: TEXT_MODEL_NAME,
+        isEnabled: true,
+        isDefault: true,
+        dimensions: null,
+        config: TEXT_MODEL_CONFIG,
+      },
+    });
+    logStep(`Migrated ${LEGACY_TEXT_MODEL_SLUG} → ${TEXT_MODEL_SLUG}`);
+  }
+
   logStep("Seeding AI text model");
   const flash = await prisma.aiModel.upsert({
     where: {
-      providerId_slug: { providerId: gemini.id, slug: "gemini-1.5-flash" },
+      providerId_slug: { providerId: gemini.id, slug: TEXT_MODEL_SLUG },
     },
     update: {
-      displayName: "Gemini 1.5 Flash",
+      displayName: TEXT_MODEL_NAME,
       modelType: AiModelType.TEXT,
       isEnabled: true,
       isDefault: true,
       dimensions: null,
-      config: { temperature: 0.7, maxOutputTokens: 1024 },
+      config: TEXT_MODEL_CONFIG,
     },
     create: {
       providerId: gemini.id,
-      slug: "gemini-1.5-flash",
-      displayName: "Gemini 1.5 Flash",
+      slug: TEXT_MODEL_SLUG,
+      displayName: TEXT_MODEL_NAME,
       modelType: AiModelType.TEXT,
       isEnabled: true,
       isDefault: true,
-      config: { temperature: 0.7, maxOutputTokens: 1024 },
+      config: TEXT_MODEL_CONFIG,
     },
   });
 
@@ -106,18 +140,38 @@ async function main() {
     where: { key_version: { key: "post.seo_meta", version: 1 } },
     update: {
       name: "SEO meta",
-      template:
-        "Given this blog post, generate:\n1. An SEO title under 60 characters\n2. A meta description under 160 characters\nReturn JSON with keys title and description.\n\n{{content}}",
-      variables: ["content"],
+      template: `You are an SEO assistant. Generate metadata for a blog post.
+
+Rules:
+- "title": SEO title, max 60 characters, compelling and accurate
+- "description": meta description, max 160 characters, no quotes inside the text
+- Return ONLY valid JSON with exactly these keys: "title", "description"
+- Do not wrap the JSON in markdown or add commentary
+
+Post title: {{title}}
+
+Post content:
+{{content}}`,
+      variables: ["title", "content"],
       isActive: true,
     },
     create: {
       key: "post.seo_meta",
       version: 1,
       name: "SEO meta",
-      template:
-        "Given this blog post, generate:\n1. An SEO title under 60 characters\n2. A meta description under 160 characters\nReturn JSON with keys title and description.\n\n{{content}}",
-      variables: ["content"],
+      template: `You are an SEO assistant. Generate metadata for a blog post.
+
+Rules:
+- "title": SEO title, max 60 characters, compelling and accurate
+- "description": meta description, max 160 characters, no quotes inside the text
+- Return ONLY valid JSON with exactly these keys: "title", "description"
+- Do not wrap the JSON in markdown or add commentary
+
+Post title: {{title}}
+
+Post content:
+{{content}}`,
+      variables: ["title", "content"],
       isActive: true,
     },
   });
@@ -126,8 +180,14 @@ async function main() {
     where: { key_version: { key: "post.suggest_tags", version: 1 } },
     update: {
       name: "Suggest tags",
-      template:
-        "Suggest 5 relevant tags for this blog post as a JSON array of short lowercase tag names.\n\n{{content}}",
+      template: `Suggest 5 relevant tags for this blog post.
+
+Rules:
+- Return ONLY a JSON array of short lowercase tag names (strings)
+- Example: ["nextjs", "tutorial", "web-dev"]
+- No markdown, no commentary
+
+{{content}}`,
       variables: ["content"],
       isActive: true,
     },
@@ -135,8 +195,14 @@ async function main() {
       key: "post.suggest_tags",
       version: 1,
       name: "Suggest tags",
-      template:
-        "Suggest 5 relevant tags for this blog post as a JSON array of short lowercase tag names.\n\n{{content}}",
+      template: `Suggest 5 relevant tags for this blog post.
+
+Rules:
+- Return ONLY a JSON array of short lowercase tag names (strings)
+- Example: ["nextjs", "tutorial", "web-dev"]
+- No markdown, no commentary
+
+{{content}}`,
       variables: ["content"],
       isActive: true,
     },
@@ -147,7 +213,7 @@ async function main() {
     update: {
       name: "Writing assistant",
       template:
-        "Improve the following blog post draft for clarity, structure, and readability while preserving meaning.\n\n{{content}}",
+        "Improve the following blog post draft for clarity, structure, and readability while preserving meaning. Return only the improved article text.\n\n{{content}}",
       variables: ["content"],
       isActive: true,
     },
@@ -156,7 +222,7 @@ async function main() {
       version: 1,
       name: "Writing assistant",
       template:
-        "Improve the following blog post draft for clarity, structure, and readability while preserving meaning.\n\n{{content}}",
+        "Improve the following blog post draft for clarity, structure, and readability while preserving meaning. Return only the improved article text.\n\n{{content}}",
       variables: ["content"],
       isActive: true,
     },
@@ -209,7 +275,9 @@ async function main() {
       isEnabled: true,
       textModelId: flash.id,
       promptTemplateId: seoPrompt.id,
-      config: {},
+      config: {
+        responseMimeType: "application/json",
+      },
     },
     create: {
       featureKey: "post.seo_meta",
@@ -217,7 +285,9 @@ async function main() {
       isEnabled: true,
       textModelId: flash.id,
       promptTemplateId: seoPrompt.id,
-      config: {},
+      config: {
+        responseMimeType: "application/json",
+      },
     },
   });
 
@@ -228,7 +298,9 @@ async function main() {
       isEnabled: true,
       textModelId: flash.id,
       promptTemplateId: tagsPrompt.id,
-      config: {},
+      config: {
+        responseMimeType: "application/json",
+      },
     },
     create: {
       featureKey: "post.suggest_tags",
@@ -236,7 +308,9 @@ async function main() {
       isEnabled: true,
       textModelId: flash.id,
       promptTemplateId: tagsPrompt.id,
-      config: {},
+      config: {
+        responseMimeType: "application/json",
+      },
     },
   });
 

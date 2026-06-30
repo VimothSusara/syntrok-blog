@@ -21,17 +21,25 @@ export class GeminiProvider implements AiProvider {
   ): Promise<TextGenerationResult> {
     const client = this.getClient();
 
+    const responseMimeType =
+      typeof params.config.responseMimeType === "string"
+        ? params.config.responseMimeType
+        : undefined;
+
     const response = await client.models.generateContent({
       model: params.modelSlug,
       contents: params.prompt,
       config: {
         temperature: Number(params.config.temperature ?? 0.7),
         maxOutputTokens: Number(params.config.maxOutputTokens ?? 1024),
+        ...(responseMimeType ? { responseMimeType } : {}),
       },
     });
 
     return {
       text: response.text ?? "",
+      inputTokens: response.usageMetadata?.promptTokenCount ?? undefined,
+      outputTokens: response.usageMetadata?.candidatesTokenCount ?? undefined,
     };
   }
 
@@ -48,10 +56,8 @@ export class GeminiProvider implements AiProvider {
       },
     });
 
-    const firstEmbedding = response.embeddings?.[0]?.values ?? [];
-
     return {
-      embedding: firstEmbedding,
+      embedding: response.embeddings?.[0]?.values ?? [],
     };
   }
 }

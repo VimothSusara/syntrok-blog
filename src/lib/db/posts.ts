@@ -225,6 +225,8 @@ export async function createPost(authorId: string, input: PostFormInput) {
       publishedAt,
       authorId,
       categoryId: input.categoryId || null,
+      metaTitle: input.metaTitle?.trim() || null,
+      metaDescription: input.metaDescription?.trim() || null,
       ...(tagIds.length
         ? { tags: { create: tagIds.map((tagId) => ({ tagId })) } }
         : {}),
@@ -265,6 +267,8 @@ export async function updatePost(postId: string, input: PostFormInput) {
         ...(tagIds.length
           ? { tags: { create: tagIds.map((tagId) => ({ tagId })) } }
           : {}),
+        metaTitle: input.metaTitle?.trim() || null,
+        metaDescription: input.metaDescription?.trim() || null,
       },
     });
   });
